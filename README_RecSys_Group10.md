@@ -67,13 +67,23 @@ The mock data includes:
 
 ## How to Run
 
-### Option 1: Run with script
+### Option 1: Run with Windows demo launcher
+
+From PowerShell or Command Prompt:
+
+```powershell
+.\start_demo.cmd
+```
+
+This creates a local Windows virtual environment on first run, installs dependencies if needed, and starts the Streamlit app.
+
+### Option 2: Run with bash script
 
 ```bash
 bash run_prototype.sh
 ```
 
-### Option 2: Run manually
+### Option 3: Run manually
 
 Install dependencies:
 

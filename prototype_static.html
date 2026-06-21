@@ -1,0 +1,1778 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elective Recommendations</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --text: #111827;
+      --muted: #667985;
+      --line: #cfd7dd;
+      --accent: #d46b00;
+      --accent-dark: #a64f00;
+      --accent-soft: #fff5e8;
+      --blue: #004763;
+      --blue-dark: #00384f;
+      --blue-soft: #eef7fc;
+      --success: #2e7d32;
+      --radius: 2px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .topbar {
+      align-items: center;
+      background: linear-gradient(90deg, #0b5871, var(--blue-dark));
+      border-bottom: 0;
+      display: flex;
+      gap: 24px;
+      min-height: 54px;
+      padding: 0 36px;
+    }
+
+    .brand {
+      align-items: center;
+      color: #ffffff;
+      display: flex;
+      font-size: 27px;
+      font-weight: 300;
+      gap: 12px;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 0;
+      color: #ffffff;
+      display: inline-flex;
+      font-size: 0;
+      font-weight: 700;
+      height: 30px;
+      justify-content: center;
+      position: relative;
+      width: 36px;
+    }
+
+    .brand-mark::before {
+      color: #ffffff;
+      content: "E";
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .topnav {
+      display: flex;
+      gap: 18px;
+      height: 54px;
+    }
+
+    .topnav a {
+      align-items: center;
+      color: #d9e6ed;
+      display: flex;
+      font-size: 12px;
+      padding: 0;
+      text-decoration: none;
+    }
+
+    .topnav a.active {
+      background: transparent;
+      border-bottom: 3px solid #ed8b00;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .user-menu {
+      color: #d9e6ed;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .topbar-actions {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .prototype-toggle {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 2px;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0;
+      padding: 5px 8px;
+      width: auto;
+    }
+
+    .prototype-toggle:hover,
+    .prototype-toggle.active {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 0;
+      padding: 22px 0 14px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      border-bottom: 1px dotted #8d9aa3;
+      font-size: 25px;
+      font-weight: 400;
+      letter-spacing: 0;
+      padding-bottom: 6px;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 980px;
+      color: var(--muted);
+    }
+
+    .breadcrumb {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .breadcrumb span {
+      color: var(--accent);
+    }
+
+    main {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: 220px minmax(0, 1fr);
+      padding: 0 36px 32px 0;
+    }
+
+    section.panel,
+    .course,
+    .compare-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    aside {
+      align-self: stretch;
+      background: var(--blue-soft);
+      border-right: 1px solid #bfd3df;
+      min-height: calc(100vh - 54px);
+    }
+
+    .nav-header {
+      background: linear-gradient(#f09a18, #d77700);
+      border-bottom: 1px solid #b75d00;
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 700;
+      padding: 11px 24px;
+    }
+
+    .side-nav {
+      padding: 12px 24px 24px;
+    }
+
+    .nav-group {
+      color: #17212b;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 13px 0 4px;
+    }
+
+    .side-nav a {
+      border-left: 2px solid transparent;
+      color: #243744;
+      display: block;
+      font-size: 12px;
+      padding: 3px 0 3px 10px;
+      text-decoration: none;
+    }
+
+    .side-nav a:hover {
+      color: var(--accent-dark);
+      text-decoration: underline;
+    }
+
+    .side-nav a.active {
+      border-left-color: var(--accent);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .profile-panel {
+      background: #f7fbfe;
+      border: 1px solid #bfd3df;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .profile-panel summary {
+      align-items: center;
+      color: #23343e;
+      cursor: pointer;
+      display: flex;
+      font-size: 14px;
+      font-weight: 700;
+      justify-content: space-between;
+      list-style: none;
+      padding: 11px 14px;
+    }
+
+    .profile-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .profile-panel summary::after {
+      content: "+";
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    .profile-panel[open] summary {
+      border-bottom: 1px solid #d8e5ed;
+    }
+
+    .profile-panel[open] summary::after {
+      content: "-";
+    }
+
+    .profile-grid {
+      display: grid;
+      gap: 0 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      padding: 2px 14px 14px;
+    }
+
+    .profile-wide {
+      grid-column: 1 / -1;
+    }
+
+    .profile-actions {
+      align-items: end;
+      display: flex;
+    }
+
+    .profile-actions button {
+      margin-top: 14px;
+    }
+
+    .recommendation-context[hidden] {
+      display: none !important;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .section-label {
+      color: #111827;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 18px 0 6px;
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-size: 12px;
+      padding: 5px 7px;
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0, 92, 153, 0.14);
+      outline: 0;
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin: -4px 0 8px;
+    }
+
+    .record-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .record-chip {
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #bfd3df;
+      border-radius: 2px;
+      color: var(--accent-dark);
+      display: inline-flex;
+      font-size: 13px;
+      gap: 6px;
+      padding: 3px 6px;
+    }
+
+    .chip-remove {
+      align-items: center;
+      background: transparent;
+      border: 0;
+      color: var(--accent-dark);
+      display: inline-flex;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      margin: 0;
+      padding: 0 2px;
+      width: auto;
+    }
+
+    .chip-add-row {
+      display: grid;
+      gap: 6px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      margin-top: 8px;
+    }
+
+    .chip-add-row button {
+      margin: 0;
+      padding: 9px 12px;
+      width: auto;
+    }
+
+    .summary-row,
+    .metrics-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      margin-bottom: 14px;
+    }
+
+    .summary-card,
+    .metric-card {
+      background: #f8fbfd;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+    }
+
+    .summary-card span,
+    .metric-card span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .summary-card strong,
+    .metric-card strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 18px;
+      border: 1px solid #a75200;
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      background: linear-gradient(#ee941e, #c96500);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    .inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .action-button {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--accent-dark);
+      margin: 0;
+      padding: 4px 8px;
+      width: auto;
+    }
+
+    .action-button:hover,
+    .action-button.active {
+      background: var(--accent-soft);
+      border-color: #e6b36f;
+      color: var(--accent-dark);
+    }
+
+    .content {
+      min-width: 0;
+      padding-right: 2px;
+    }
+
+    .course-overview {
+      background: #ffffff;
+      border: 1px solid #bfd3df;
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .course-overview-title {
+      align-items: center;
+      background: #f5fbff;
+      border-left: 0;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      padding: 12px 14px;
+    }
+
+    .course-overview-title h2 {
+      margin: 0;
+    }
+
+    .course-overview-title p {
+      color: var(--muted);
+      margin: 2px 0 0;
+    }
+
+    .integration-pill {
+      background: #f7f7f7;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: #3b4045;
+      flex: 0 0 auto;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 8px;
+    }
+
+    .priority-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .priority {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .priority::before {
+      background: var(--accent);
+      border-radius: 0;
+      content: "";
+      display: block;
+      height: 4px;
+      margin-bottom: 9px;
+      width: 34px;
+    }
+
+    .priority strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .priority span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .mode-info,
+    .formula {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .formula code {
+      display: block;
+      margin-top: 8px;
+      white-space: pre-wrap;
+      font-family: Consolas, Menlo, monospace;
+      font-size: 13px;
+    }
+
+    .formula summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin: 14px 0 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tab {
+      width: auto;
+      margin: 0;
+      padding: 11px 16px;
+      background: transparent;
+      color: var(--muted);
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--accent);
+      border-bottom-color: #ffffff;
+      transform: translateY(1px);
+    }
+
+    .panel {
+      border-top: 0;
+      padding: 14px 0 18px;
+    }
+
+    .course-table-head {
+      background: #eeeeee;
+      border: 1px solid var(--line);
+      display: grid;
+      font-size: 12px;
+      font-weight: 700;
+      grid-template-columns: 54px minmax(0, 1fr) 292px;
+      padding: 6px 10px;
+    }
+
+    .course {
+      border-left: 0;
+      border-radius: 0;
+      margin-bottom: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .course:nth-of-type(even) {
+      background: #f2f8fb;
+    }
+
+    .course-head {
+      align-items: start;
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid #e5eaee;
+      padding: 8px 10px 5px;
+    }
+
+    .course-rank {
+      align-items: center;
+      background: var(--accent-soft);
+      border: 0;
+      border-radius: 0;
+      color: var(--accent-dark);
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-weight: 700;
+      height: 26px;
+      justify-content: center;
+      width: 36px;
+    }
+
+    .course-body {
+      padding: 4px 10px 10px 58px;
+    }
+
+    .course-actions-col {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      justify-content: flex-end;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .course-body p {
+      margin: 7px 0;
+    }
+
+    .course-description {
+      color: #334155;
+      font-size: 13px;
+    }
+
+    .course-explanation {
+      color: #475569;
+      font-size: 13px;
+    }
+
+    .course-title-row {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .course-title-row h3 {
+      color: var(--accent-dark);
+    }
+
+    .badge {
+      border-radius: 2px;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 8px;
+    }
+
+    .badge.open {
+      background: #eef7fc;
+      color: var(--accent-dark);
+    }
+
+    .badge.lms {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .meta,
+    .muted {
+      color: var(--muted);
+    }
+
+    .scores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .score-pill {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 3px 6px;
+      background: #fafafa;
+      font-size: 11px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tag-chip {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      color: var(--accent-dark);
+      font-size: 12px;
+      padding: 0;
+    }
+
+    .empty-state {
+      background: #ffffff;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      padding: 18px;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .compare-box {
+      padding: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .list-table-wrap {
+      border: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .list-table {
+      font-size: 12px;
+    }
+
+    .list-table th {
+      background: #eeeeee;
+      color: #26343d;
+      text-transform: none;
+    }
+
+    .list-table tbody tr:nth-child(even) {
+      background: #f2f8fb;
+    }
+
+    .list-table td,
+    .list-table th {
+      padding: 7px 9px;
+    }
+
+    .list-course-title {
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .list-actions {
+      white-space: nowrap;
+    }
+
+    .list-actions .action-button {
+      margin-right: 4px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .metric {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--accent-soft);
+      border: 1px solid #c7def3;
+    }
+
+    footer {
+      padding: 0 32px 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      aside {
+        min-height: auto;
+      }
+
+      .side-nav {
+        display: grid;
+        gap: 3px 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .nav-group {
+        grid-column: 1 / -1;
+      }
+
+      header {
+        padding: 20px 16px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 16px;
+      }
+
+      .topnav {
+        flex-wrap: wrap;
+        height: auto;
+      }
+
+      .topnav a {
+        padding: 6px 8px;
+      }
+
+      .user-menu {
+        margin-left: 0;
+      }
+
+      .topbar-actions {
+        margin-left: 0;
+      }
+
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-wide {
+        grid-column: auto;
+      }
+
+      .priority-grid,
+      .compare-grid,
+      .summary-row,
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .course-body {
+        padding-left: 16px;
+      }
+
+      .course-table-head {
+        display: none;
+      }
+
+      .course-overview-title {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .integration-pill {
+        flex: 0 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="brand-mark">E</span><span>Elective Planner</span></div>
+    <nav class="topnav" aria-label="Student system navigation">
+      <a href="#">Home</a>
+      <a href="#">Organisation</a>
+      <a class="active" href="#">Teaching</a>
+      <a href="#">Research</a>
+    </nav>
+    <div class="topbar-actions">
+      <button id="prototypeToggle" class="prototype-toggle" type="button">Prototype notes</button>
+      <div class="user-menu">Student account</div>
+    </div>
+  </div>
+
+  <main>
+    <aside aria-label="Study management navigation">
+      <div class="nav-header">Teaching</div>
+      <nav class="side-nav">
+        <div class="nav-group">Course offer</div>
+        <a id="coursesNav" href="#courses">Courses</a>
+        <a href="#">Study offer</a>
+        <a id="recommendationsNav" class="active" href="#" aria-current="page">Elective recommendations</a>
+
+        <div class="nav-group">Course planning</div>
+        <a id="favouritesNav" href="#favourites">Favourites</a>
+        <a href="#">Calendar</a>
+        <a href="#">Registrations</a>
+        <a href="#">Examinations</a>
+
+        <div class="nav-group">Student services</div>
+        <a href="#">Study record</a>
+        <a href="#">Certificates</a>
+        <a href="#">Recognition</a>
+      </nav>
+    </aside>
+
+    <div class="content">
+      <header>
+        <div id="pageBreadcrumb" class="breadcrumb"><span>Teaching</span> / <span>Study planning</span> / Elective recommendations</div>
+        <h1 id="pageTitle">Elective Recommendations</h1>
+        <p id="pageDescription">
+          Find relevant elective and transferable-skills courses using your study record and learning goals.
+        </p>
+      </header>
+
+      <section class="course-overview recommendation-context">
+        <div class="course-overview-title">
+          <div>
+            <h2>Recommended electives for your study plan</h2>
+            <p>Personalised options based on your study record and learning goals.</p>
+          </div>
+          <div class="integration-pill">study record + catalogue</div>
+        </div>
+      </section>
+
+      <details class="profile-panel recommendation-context">
+        <summary>Adjust recommendation profile and filters</summary>
+        <div class="profile-grid">
+          <div>
+        <label for="persona">Demo persona</label>
+        <select id="persona"></select>
+          </div>
+          <div>
+        <label for="studyProgram">Study programme</label>
+        <input id="studyProgram" type="text">
+          </div>
+          <div>
+            <label for="mode">Exploration mode</label>
+            <select id="mode">
+              <option>Safe</option>
+              <option selected>Balanced</option>
+              <option>Exploratory</option>
+            </select>
+          </div>
+          <div class="profile-wide">
+        <label>Completed courses from student record</label>
+        <p class="hint">Shown as imported record data. Adjust chips only for the demo.</p>
+        <div id="completedCourseChips" class="record-chips"></div>
+        <div class="chip-add-row">
+          <input id="completedCourseInput" type="text" placeholder="Add demo course">
+          <button id="addCompletedCourse" type="button">Add</button>
+        </div>
+          </div>
+          <div class="profile-wide">
+        <label for="interests">Interests and learning goals</label>
+        <textarea id="interests"></textarea>
+          </div>
+          <div>
+        <label for="topN">Number of recommendations</label>
+        <select id="topN">
+          <option>3</option>
+          <option>4</option>
+          <option selected>5</option>
+          <option>6</option>
+          <option>7</option>
+          <option>8</option>
+          <option>9</option>
+          <option>10</option>
+        </select>
+          </div>
+          <div>
+        <label for="language">Language filter</label>
+        <select id="language">
+          <option>Any</option>
+          <option>English</option>
+          <option>German</option>
+        </select>
+          </div>
+          <div>
+        <label for="university">University filter</label>
+        <select id="university"></select>
+          </div>
+          <div>
+        <label for="semester">Semester filter</label>
+        <select id="semester">
+          <option>Any</option>
+          <option>Winter</option>
+          <option>Summer</option>
+          <option>Both</option>
+        </select>
+          </div>
+          <div class="profile-actions">
+        <button id="recommendButton">Update recommendations</button>
+          </div>
+        </div>
+      </details>
+
+      <section id="studentSummary" class="summary-row recommendation-context" aria-label="Student summary"></section>
+
+      <nav class="tabs recommendation-context" aria-label="Prototype views">
+        <button class="tab active" data-tab="recommendations">Recommendations</button>
+        <button class="tab" data-tab="shortlist">Shortlist</button>
+        <button class="tab" data-tab="comparison">Compare</button>
+      </nav>
+
+      <section id="recommendations" class="panel"></section>
+      <section id="shortlist" class="panel" hidden></section>
+      <section id="comparison" class="panel" hidden></section>
+      <section id="favourites" class="panel" hidden></section>
+      <section id="catalogue" class="panel" hidden></section>
+      <section id="evaluation" class="panel" hidden></section>
+    </div>
+  </main>
+
+  <footer>
+    The course catalogue and popularity values are mocked for demonstration. No real student data is stored.
+  </footer>
+
+  <script>
+    const personas = {
+      "Business Informatics": {
+        studyProgram: "Business Informatics",
+        completedCourses: "Databases, Software Engineering, Statistics, Project Management",
+        interests: "I am interested in sustainability, artificial intelligence, ethics, and communication skills."
+      },
+      "Environmental Engineering": {
+        studyProgram: "Environmental Engineering",
+        completedCourses: "Ecology, Environmental Systems, Resource Management",
+        interests: "I want to learn more about climate policy, sustainable cities, mobility, and environmental governance."
+      },
+      "Psychology": {
+        studyProgram: "Psychology",
+        completedCourses: "Introduction to Psychology, Social Psychology, Research Methods",
+        interests: "I am interested in communication, wellbeing, learning, behavioral economics, and inclusive digital tools."
+      }
+    };
+
+    const modeExplanations = {
+      Safe: "Safe ranks courses by content similarity only.",
+      Balanced: "Balanced adds a moderate bonus for less popular courses.",
+      Exploratory: "Exploratory gives stronger visibility to niche courses."
+    };
+
+    const modeWeights = {
+      Safe: 0,
+      Balanced: 0.15,
+      Exploratory: 0.30
+    };
+
+    let courses = [];
+    let completedCourseNames = [];
+    const favouriteIds = new Set();
+    const shortlistIds = new Set();
+    const compareIds = new Set();
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"' && inQuotes && next === '"') {
+          field += '"';
+          i += 1;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+          row.push(field);
+          if (row.some((value) => value.trim() !== "")) {
+            rows.push(row);
+          }
+          row = [];
+          field = "";
+        } else {
+          field += char;
+        }
+      }
+
+      if (field || row.length) {
+        row.push(field);
+        rows.push(row);
+      }
+
+      const headers = rows.shift();
+      return rows.map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] || ""])));
+    }
+
+    function tokenize(text) {
+      return String(text)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .split(/\s+/)
+        .filter((token) => token.length > 2);
+    }
+
+    function uniqueTokens(text) {
+      return new Set(tokenize(text));
+    }
+
+    function scoreLabel(value) {
+      if (value >= 0.45) return "high";
+      if (value >= 0.20) return "medium";
+      return "low";
+    }
+
+    function courseText(course) {
+      return `${course.title} ${course.description} ${course.tags.replaceAll(",", " ")}`;
+    }
+
+    function contentScore(profileTokens, course) {
+      const tokens = uniqueTokens(courseText(course));
+      let overlap = 0;
+      for (const token of profileTokens) {
+        if (tokens.has(token)) {
+          overlap += 1;
+        }
+      }
+      if (!profileTokens.size || !tokens.size) {
+        return 0;
+      }
+      return overlap / Math.sqrt(profileTokens.size * tokens.size);
+    }
+
+    function matchingTags(course, profileTokens) {
+      return course.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+        .filter((tag) => tokenize(tag).some((token) => profileTokens.has(token)))
+        .slice(0, 3);
+    }
+
+    function currentProfileText() {
+      return [
+        document.querySelector("#studyProgram").value.trim(),
+        completedCourseNames.join(" "),
+        document.querySelector("#interests").value.trim()
+      ].filter(Boolean).join(" ");
+    }
+
+    function currentProfileTokens() {
+      return uniqueTokens(currentProfileText());
+    }
+
+    function courseById(courseId) {
+      return courses.find((course) => course.course_id === courseId);
+    }
+
+    function formatTags(course) {
+      const matched = matchingTags(course, currentProfileTokens());
+      const tags = matched.length ? matched : course.tags.split(",").map((tag) => tag.trim()).filter(Boolean).slice(0, 3);
+      return tags.map((tag) => `<span class="tag-chip">${tag}</span>`).join("");
+    }
+
+    function explain(course, profileTokens, mode) {
+      const tags = matchingTags(course, profileTokens);
+      let reason = "is one of the closest available options after the selected filters";
+      if (tags.length) {
+        reason = `matches your profile around ${tags.join(", ")}`;
+      } else if (course.content_score > 0) {
+        reason = "has related wording in its title, description, or tags";
+      }
+
+      let text = `Recommended because it ${reason}.`;
+      if ((mode === "Balanced" || mode === "Exploratory") && course.niche_bonus >= 0.45) {
+        text += " It is also a less mainstream option, which supports exploration beyond the most popular courses.";
+      } else if (course.popularity >= 0.75) {
+        text += " It is a relatively well-known option in the mock catalogue.";
+      }
+      return text;
+    }
+
+    function recommend(mode, options = {}) {
+      const excludeShortlisted = options.excludeShortlisted ?? true;
+      const studyProgram = document.querySelector("#studyProgram").value.trim();
+      const completedCourses = completedCourseNames.join(", ");
+      const interests = document.querySelector("#interests").value.trim();
+      const language = document.querySelector("#language").value;
+      const university = document.querySelector("#university").value;
+      const semester = document.querySelector("#semester").value;
+      const topN = Number(document.querySelector("#topN").value);
+      const profileText = [studyProgram, completedCourses, interests].filter(Boolean).join(" ");
+      const profileTokens = uniqueTokens(profileText);
+      const completedText = completedCourses.toLowerCase();
+      const nicheWeight = modeWeights[mode] ?? 0.15;
+
+      if (!profileText) {
+        return [];
+      }
+
+      return courses
+        .filter((course) => language === "Any" || course.language === language)
+        .filter((course) => university === "Any" || course.university === university)
+        .filter((course) => semester === "Any" || course.semester === semester || course.semester === "Both")
+        .filter((course) => !completedText || !completedText.includes(course.title.toLowerCase()))
+        .filter((course) => !excludeShortlisted || !shortlistIds.has(course.course_id))
+        .map((course) => {
+          const content = contentScore(profileTokens, course);
+          const niche = 1 - course.popularity;
+          const finalScore = (1 - nicheWeight) * content + nicheWeight * niche;
+          const scoredCourse = {
+            ...course,
+            content_score: content,
+            niche_bonus: niche,
+            final_score: finalScore
+          };
+          return {
+            ...scoredCourse,
+            explanation: explain(scoredCourse, profileTokens, mode)
+          };
+        })
+        .sort((a, b) => b.final_score - a.final_score)
+        .slice(0, topN);
+    }
+
+    function renderCards(results) {
+      const container = document.querySelector("#recommendations");
+      if (!results.length) {
+        container.innerHTML = "<p>No further courses matched the selected filters. Remove a course from the shortlist or use fewer filters.</p>";
+        return;
+      }
+
+      container.innerHTML = `
+        <h2>Recommended Courses</h2>
+        <div class="course-table-head">
+          <span>Rank</span>
+          <span>Title</span>
+          <span>Actions</span>
+        </div>
+        ${results.map((course, index) => `
+          <article class="course">
+            <div class="course-head">
+              <div class="course-rank">#${index + 1}</div>
+              <div>
+                <div class="course-title-row">
+                  <h3>${course.title}</h3>
+                  <span class="badge open">elective</span>
+                </div>
+                <p class="meta"><strong>${course.university}</strong> &middot; ${course.ects} ECTS &middot; ${course.language} &middot; ${course.semester}</p>
+                <div class="tag-row">${formatTags(course)}</div>
+              </div>
+              <div class="course-actions-col">
+                <button class="action-button ${favouriteIds.has(course.course_id) ? "active" : ""}" data-action="favourite" data-course-id="${course.course_id}">
+                  ${favouriteIds.has(course.course_id) ? "In favourites" : "Add to favourites"}
+                </button>
+                <button class="action-button ${shortlistIds.has(course.course_id) ? "active" : ""}" data-action="shortlist" data-course-id="${course.course_id}">
+                  ${shortlistIds.has(course.course_id) ? "Shortlisted" : "Shortlist"}
+                </button>
+                <button class="action-button ${compareIds.has(course.course_id) ? "active" : ""}" data-action="compare" data-course-id="${course.course_id}">
+                  ${compareIds.has(course.course_id) ? "Selected" : "Compare"}
+                </button>
+              </div>
+            </div>
+            <div class="course-body">
+              <p class="course-description">${course.description}</p>
+              <p class="course-explanation"><strong>Why recommended:</strong> ${course.explanation}</p>
+              <div class="scores">
+                <span class="score-pill">${scoreLabel(course.content_score)} content match</span>
+                <span class="score-pill">${scoreLabel(course.niche_bonus)} exploration value</span>
+              </div>
+            </div>
+          </article>
+        `).join("")}
+      `;
+      attachCourseActions(container);
+    }
+
+    function renderComparison() {
+      const selected = [...compareIds].map(courseById).filter(Boolean);
+      if (selected.length < 2) {
+        document.querySelector("#comparison").innerHTML = `
+          <h2>Compare Courses</h2>
+          <div class="empty-state">Select at least two courses with the Compare button to inspect them side by side.</div>
+        `;
+        return;
+      }
+      document.querySelector("#comparison").innerHTML = `
+        <h2>Compare Courses</h2>
+        ${renderTable(selected)}
+      `;
+    }
+
+    function renderShortlist() {
+      const selected = [...shortlistIds].map(courseById).filter(Boolean);
+      const totalEcts = selected.reduce((sum, course) => sum + course.ects, 0);
+      if (!selected.length) {
+        document.querySelector("#shortlist").innerHTML = `
+          <h2>Shortlist</h2>
+          <div class="empty-state">No courses shortlisted yet. Use Shortlist on a recommendation to build your planning list.</div>
+        `;
+        return;
+      }
+
+      document.querySelector("#shortlist").innerHTML = `
+        <h2>Shortlist</h2>
+        <div class="metrics-grid">
+          <div class="metric-card"><span>Selected courses</span><strong>${selected.length}</strong></div>
+          <div class="metric-card"><span>Total ECTS</span><strong>${totalEcts}</strong></div>
+          <div class="metric-card"><span>Universities</span><strong>${new Set(selected.map((course) => course.university)).size}</strong></div>
+          <div class="metric-card"><span>Languages</span><strong>${new Set(selected.map((course) => course.language)).size}</strong></div>
+        </div>
+        ${renderShortlistCourses(selected)}
+      `;
+      attachCourseActions(document.querySelector("#shortlist"));
+    }
+
+    function renderShortlistCourses(results) {
+      return results.map((course, index) => `
+        <article class="course">
+          <div class="course-head">
+            <div class="course-rank">${index + 1}</div>
+            <div>
+              <div class="course-title-row">
+                <h3>${course.title}</h3>
+                <span class="badge open">shortlisted</span>
+              </div>
+              <p class="meta"><strong>${course.university}</strong> &middot; ${course.ects} ECTS &middot; ${course.language} &middot; ${course.semester}</p>
+              <div class="tag-row">${formatTags(course)}</div>
+            </div>
+          </div>
+          <div class="course-body">
+            <p class="course-description">${course.description}</p>
+            <div class="inline-actions">
+              <button class="action-button active" data-action="shortlist" data-course-id="${course.course_id}">Remove from shortlist</button>
+              <button class="action-button ${favouriteIds.has(course.course_id) ? "active" : ""}" data-action="favourite" data-course-id="${course.course_id}">
+                ${favouriteIds.has(course.course_id) ? "In favourites" : "Add to favourites"}
+              </button>
+              <button class="action-button ${compareIds.has(course.course_id) ? "active" : ""}" data-action="compare" data-course-id="${course.course_id}">
+                ${compareIds.has(course.course_id) ? "Selected for compare" : "Compare"}
+              </button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderFavourites() {
+      const selected = [...favouriteIds].map(courseById).filter(Boolean);
+      const container = document.querySelector("#favourites");
+      if (!selected.length) {
+        container.innerHTML = `
+          <div class="empty-state">No favourite courses yet. Use Add to favourites on a recommendation to save courses here.</div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="list-table-wrap">
+          <table class="list-table">
+            <thead><tr><th>Course</th><th>University</th><th>ECTS</th><th>Semester</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${selected.map((course) => `
+                <tr>
+                  <td><span class="list-course-title">${course.title}</span></td>
+                  <td>${course.university}</td>
+                  <td>${course.ects}</td>
+                  <td>${course.semester}</td>
+                  <td class="list-actions">
+                    <button class="action-button active" data-action="favourite" data-course-id="${course.course_id}">Remove</button>
+                    <button class="action-button ${shortlistIds.has(course.course_id) ? "active" : ""}" data-action="shortlist" data-course-id="${course.course_id}">
+                      ${shortlistIds.has(course.course_id) ? "Shortlisted" : "Shortlist"}
+                    </button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+      attachCourseActions(container);
+    }
+
+    function renderCatalogue() {
+      const container = document.querySelector("#catalogue");
+      container.innerHTML = `
+        <div class="list-table-wrap">
+          <table class="list-table">
+            <thead><tr><th>Course</th><th>University</th><th>ECTS</th><th>Language</th><th>Semester</th><th>Topics</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${courses.map((course) => `
+                <tr>
+                  <td><span class="list-course-title">${course.title}</span></td>
+                  <td>${course.university}</td>
+                  <td>${course.ects}</td>
+                  <td>${course.language}</td>
+                  <td>${course.semester}</td>
+                  <td>${course.tags}</td>
+                  <td class="list-actions">
+                    <button class="action-button ${favouriteIds.has(course.course_id) ? "active" : ""}" data-action="favourite" data-course-id="${course.course_id}">
+                      ${favouriteIds.has(course.course_id) ? "Favourite" : "Add favourite"}
+                    </button>
+                    <button class="action-button ${shortlistIds.has(course.course_id) ? "active" : ""}" data-action="shortlist" data-course-id="${course.course_id}">
+                      ${shortlistIds.has(course.course_id) ? "Shortlisted" : "Shortlist"}
+                    </button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+      attachCourseActions(container);
+    }
+
+    function average(values) {
+      return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+    }
+
+    function renderEvaluation() {
+      const mode = document.querySelector("#mode").value;
+      const current = recommend(mode, { excludeShortlisted: false });
+      const safe = recommend("Safe", { excludeShortlisted: false });
+      const exploratory = recommend("Exploratory", { excludeShortlisted: false });
+      const overlap = safe.filter((course) => exploratory.some((other) => other.course_id === course.course_id)).length;
+      const universities = new Set(current.map((course) => course.university)).size;
+      const tags = new Set(current.flatMap((course) => course.tags.split(",").map((tag) => tag.trim()).filter(Boolean))).size;
+      const avgPopularity = average(current.map((course) => course.popularity));
+      const safeAvgPopularity = average(safe.map((course) => course.popularity));
+      const exploratoryAvgPopularity = average(exploratory.map((course) => course.popularity));
+
+      document.querySelector("#evaluation").innerHTML = `
+        <h2>Prototype Notes</h2>
+        <p class="muted">This tab contains information for presentation and evaluation. It would normally be hidden from students.</p>
+        <h3>Design priorities</h3>
+        <section class="priority-grid" aria-label="Prototype priorities">
+          <div class="priority"><strong>Personal relevance</strong><span>text match</span></div>
+          <div class="priority"><strong>Transparent reasons</strong><span>matched tags</span></div>
+          <div class="priority"><strong>Planning support</strong><span>favourites + shortlist + compare</span></div>
+          <div class="priority"><strong>Less popularity bias</strong><span>exploration mode</span></div>
+        </section>
+        <h3>Current mode</h3>
+        <div class="mode-info">${modeExplanations[mode]}</div>
+        <details class="formula">
+          <summary>Scoring formula</summary>
+          <code>niche_bonus = 1 - popularity
+final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</code>
+        </details>
+        <h3>Evaluation snapshot</h3>
+        <p class="muted">These metrics are computed from the current mock catalogue and selected student context.</p>
+        <div class="metrics-grid">
+          <div class="metric-card"><span>Top-${current.length} university diversity</span><strong>${universities}</strong></div>
+          <div class="metric-card"><span>Topic coverage</span><strong>${tags} tags</strong></div>
+          <div class="metric-card"><span>Average popularity</span><strong>${avgPopularity.toFixed(2)}</strong></div>
+          <div class="metric-card"><span>Safe/Exploratory overlap</span><strong>${overlap}/${Math.max(safe.length, exploratory.length)}</strong></div>
+        </div>
+        <div class="metric">
+          <strong>Popularity-bias check:</strong>
+          Safe average popularity is ${safeAvgPopularity.toFixed(2)}; Exploratory average popularity is ${exploratoryAvgPopularity.toFixed(2)}.
+          Lower popularity in Exploratory mode means niche courses become more visible.
+        </div>
+        <h3>Evaluation approach</h3>
+        <ul>
+          <li><strong>Persona check:</strong> predefined profiles should receive plausible courses for their interests.</li>
+          <li><strong>Transparency check:</strong> recommendations expose matched tags and score components.</li>
+          <li><strong>Diversity check:</strong> top recommendations should cover multiple universities and topics.</li>
+          <li><strong>Future quantitative check:</strong> manually label relevant courses per persona and report Precision@5.</li>
+        </ul>
+      `;
+    }
+
+    function renderTable(results) {
+      if (!results.length) {
+        return "<p>No matching courses.</p>";
+      }
+      const mode = document.querySelector("#mode").value;
+      const nicheWeight = modeWeights[mode] ?? 0.15;
+      const profileTokens = currentProfileTokens();
+      const rows = results.map((course) => {
+        if (Number.isFinite(course.final_score)) {
+          return course;
+        }
+        const content = contentScore(profileTokens, course);
+        const niche = 1 - course.popularity;
+        return {
+          ...course,
+          content_score: content,
+          niche_bonus: niche,
+          final_score: (1 - nicheWeight) * content + nicheWeight * niche
+        };
+      });
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Content</th>
+              <th>Niche</th>
+              <th>Final</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((course) => `
+              <tr>
+                <td>${course.title}</td>
+                <td>${course.content_score.toFixed(2)}</td>
+                <td>${course.niche_bonus.toFixed(2)}</td>
+                <td>${course.final_score.toFixed(2)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function attachCourseActions(container) {
+      container.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const courseId = button.dataset.courseId;
+          const target = button.dataset.action === "favourite"
+            ? favouriteIds
+            : button.dataset.action === "shortlist"
+              ? shortlistIds
+              : compareIds;
+          if (target.has(courseId)) {
+            target.delete(courseId);
+          } else {
+            target.add(courseId);
+          }
+          updateAll();
+        });
+      });
+    }
+
+    function renderSummary() {
+      const program = document.querySelector("#studyProgram").value.trim() || "No programme";
+      const interests = tokenize(document.querySelector("#interests").value).slice(0, 3);
+      const completed = completedCourseNames.length;
+      document.querySelector("#studentSummary").innerHTML = `
+        <div class="summary-card"><span>Study programme</span><strong>${program}</strong></div>
+        <div class="summary-card"><span>Completed courses</span><strong>${completed}</strong></div>
+        <div class="summary-card"><span>Shortlisted ECTS</span><strong>${[...shortlistIds].map(courseById).filter(Boolean).reduce((sum, course) => sum + course.ects, 0)}</strong></div>
+        <div class="summary-card"><span>Interest signals</span><strong>${interests.length ? interests.join(", ") : "not set"}</strong></div>
+      `;
+    }
+
+    function updateModeInfo() {
+      const mode = document.querySelector("#mode").value;
+      const modeInfo = document.querySelector("#modeInfo");
+      if (modeInfo) {
+        modeInfo.textContent = modeExplanations[mode];
+      }
+    }
+
+    function updateAll() {
+      updateModeInfo();
+      const results = recommend(document.querySelector("#mode").value);
+      renderSummary();
+      renderCards(results);
+      renderShortlist();
+      renderFavourites();
+      renderCatalogue();
+      renderComparison();
+      renderEvaluation();
+    }
+
+    function setPersona(name) {
+      const persona = personas[name];
+      document.querySelector("#studyProgram").value = persona.studyProgram;
+      completedCourseNames = persona.completedCourses.split(",").map((course) => course.trim()).filter(Boolean);
+      renderCompletedCourseChips();
+      document.querySelector("#interests").value = persona.interests;
+      updateAll();
+    }
+
+    function renderCompletedCourseChips() {
+      const container = document.querySelector("#completedCourseChips");
+      if (!completedCourseNames.length) {
+        container.innerHTML = `<span class="muted">No completed courses selected.</span>`;
+        return;
+      }
+
+      container.innerHTML = completedCourseNames.map((course, index) => `
+        <span class="record-chip">
+          ${course}
+          <button class="chip-remove" type="button" aria-label="Remove ${course}" data-completed-index="${index}">&times;</button>
+        </span>
+      `).join("");
+
+      container.querySelectorAll("[data-completed-index]").forEach((button) => {
+        button.addEventListener("click", () => {
+          completedCourseNames.splice(Number(button.dataset.completedIndex), 1);
+          renderCompletedCourseChips();
+          updateAll();
+        });
+      });
+    }
+
+    function addCompletedCourseFromInput() {
+      const input = document.querySelector("#completedCourseInput");
+      const value = input.value.trim();
+      if (!value) {
+        return;
+      }
+      const exists = completedCourseNames.some((course) => course.toLowerCase() === value.toLowerCase());
+      if (!exists) {
+        completedCourseNames.push(value);
+      }
+      input.value = "";
+      renderCompletedCourseChips();
+      updateAll();
+    }
+
+    function setupTabs() {
+      const viewIds = ["recommendations", "shortlist", "comparison", "favourites", "catalogue"];
+      const pageCopy = {
+        recommendations: {
+          breadcrumb: "<span>Teaching</span> / <span>Study planning</span> / Elective recommendations",
+          title: "Elective Recommendations",
+          description: "Find relevant elective and transferable-skills courses using your study record and learning goals."
+        },
+        favourites: {
+          breadcrumb: "<span>Teaching</span> / <span>Course planning</span> / Favourites",
+          title: "Favourites",
+          description: "Courses saved from recommendations or the course catalogue."
+        },
+        catalogue: {
+          breadcrumb: "<span>Teaching</span> / <span>Course offer</span> / Courses",
+          title: "Courses",
+          description: "All mock courses currently available to the recommendation prototype."
+        }
+      };
+
+      function showView(viewId) {
+        const recommendationView = ["recommendations", "shortlist", "comparison"].includes(viewId);
+        viewIds.forEach((id) => {
+          document.querySelector(`#${id}`).hidden = id !== viewId;
+        });
+        document.querySelectorAll(".recommendation-context").forEach((element) => {
+          element.hidden = !recommendationView;
+        });
+        document.querySelector("#evaluation").hidden = true;
+        document.querySelector("#prototypeToggle").classList.remove("active");
+        document.querySelectorAll(".tab").forEach((tab) => {
+          tab.classList.toggle("active", tab.dataset.tab === viewId);
+        });
+        document.querySelector("#favouritesNav").classList.toggle("active", viewId === "favourites");
+        document.querySelector("#coursesNav").classList.toggle("active", viewId === "catalogue");
+        document.querySelector("#recommendationsNav").classList.toggle("active", recommendationView);
+
+        const copy = pageCopy[recommendationView ? "recommendations" : viewId];
+        document.querySelector("#pageBreadcrumb").innerHTML = copy.breadcrumb;
+        document.querySelector("#pageTitle").textContent = copy.title;
+        document.querySelector("#pageDescription").textContent = copy.description;
+      }
+
+      document.querySelectorAll(".tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          showView(button.dataset.tab);
+        });
+      });
+
+      document.querySelector("#favouritesNav").addEventListener("click", (event) => {
+        event.preventDefault();
+        showView("favourites");
+      });
+
+      document.querySelector("#recommendationsNav").addEventListener("click", (event) => {
+        event.preventDefault();
+        showView("recommendations");
+      });
+
+      document.querySelector("#coursesNav").addEventListener("click", (event) => {
+        event.preventDefault();
+        showView("catalogue");
+      });
+
+      document.querySelector("#prototypeToggle").addEventListener("click", () => {
+        const evaluation = document.querySelector("#evaluation");
+        const willShow = evaluation.hidden;
+        viewIds.forEach((id) => {
+          document.querySelector(`#${id}`).hidden = true;
+        });
+        document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
+        document.querySelector("#favouritesNav").classList.remove("active");
+        document.querySelector("#coursesNav").classList.remove("active");
+        document.querySelector("#recommendationsNav").classList.remove("active");
+        evaluation.hidden = !willShow;
+        document.querySelector("#prototypeToggle").classList.toggle("active", willShow);
+        if (!willShow) {
+          showView("recommendations");
+        }
+      });
+    }
+
+    async function init() {
+      const personaSelect = document.querySelector("#persona");
+      Object.keys(personas).forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        personaSelect.appendChild(option);
+      });
+
+      const response = await fetch("data/courses.csv");
+      const text = await response.text();
+      courses = parseCsv(text).map((course) => ({
+        ...course,
+        ects: Number(course.ects),
+        popularity: Math.min(1, Math.max(0, Number(course.popularity) || 0.5))
+      }));
+
+      const universitySelect = document.querySelector("#university");
+      ["Any", ...new Set(courses.map((course) => course.university).filter(Boolean).sort())].forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        universitySelect.appendChild(option);
+      });
+
+      personaSelect.addEventListener("change", () => setPersona(personaSelect.value));
+      document.querySelector("#addCompletedCourse").addEventListener("click", addCompletedCourseFromInput);
+      document.querySelector("#completedCourseInput").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addCompletedCourseFromInput();
+        }
+      });
+      document.querySelector("#recommendButton").addEventListener("click", updateAll);
+      ["topN", "language", "university", "semester", "mode"].forEach((id) => {
+        document.querySelector(`#${id}`).addEventListener("change", updateAll);
+      });
+
+      setupTabs();
+      setPersona("Business Informatics");
+    }
+
+    init().catch((error) => {
+      document.querySelector("#recommendations").innerHTML = `<p>Could not load the course catalogue: ${error.message}</p>`;
+    });
+  </script>
+</body>
+</html>

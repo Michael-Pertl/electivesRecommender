@@ -7,6 +7,52 @@ from recommender import CourseRecommender, available_values
 
 DATA_PATH = Path("data/courses.csv")
 
+PERSONAS = {
+    "Business Informatics": {
+        "study_program": "Business Informatics",
+        "completed_courses": "Databases, Software Engineering, Statistics, Project Management",
+        "interests": "I am interested in sustainability, artificial intelligence, ethics, and communication skills.",
+    },
+    "Environmental Engineering": {
+        "study_program": "Environmental Engineering",
+        "completed_courses": "Ecology, Environmental Systems, Resource Management",
+        "interests": "I want to learn more about climate policy, sustainable cities, mobility, and environmental governance.",
+    },
+    "Psychology": {
+        "study_program": "Psychology",
+        "completed_courses": "Introduction to Psychology, Social Psychology, Research Methods",
+        "interests": "I am interested in communication, wellbeing, learning, behavioral economics, and inclusive digital tools.",
+    },
+}
+
+
+def score_label(value: float) -> str:
+    if value >= 0.45:
+        return "high"
+    if value >= 0.20:
+        return "medium"
+    return "low"
+
+
+def render_course_cards(results):
+    for index, row in results.iterrows():
+        st.markdown(
+            f"""
+<div style="border: 1px solid #d8dee4; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+  <h3 style="margin-top: 0;">#{index + 1} {row['title']}</h3>
+  <p><strong>{row['university']}</strong> · {row['ects']:g} ECTS · {row['language']} · {row['semester']}</p>
+  <p>{row['description']}</p>
+  <p><strong>Why recommended:</strong><br>{row['explanation']}</p>
+  <p><strong>Score interpretation:</strong>
+    Content match is {score_label(row['content_score'])} ({row['content_score']:.2f}) ·
+    Exploration bonus is {score_label(row['niche_bonus'])} ({row['niche_bonus']:.2f}) ·
+    Final score: {row['final_score']:.2f}
+  </p>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
+
 
 @st.cache_resource
 def load_recommender() -> CourseRecommender:
@@ -34,16 +80,24 @@ except Exception as exc:
 
 with st.sidebar:
     st.header("Student Profile")
-    study_program = st.text_input("Study programme", value="Business Informatics")
+    persona_name = st.selectbox("Demo persona", list(PERSONAS), index=0)
+    persona = PERSONAS[persona_name]
+    study_program = st.text_input(
+        "Study programme",
+        value=persona["study_program"],
+        key=f"study_program_{persona_name}",
+    )
     completed_courses = st.text_area(
         "Completed courses",
-        value="Databases, Software Engineering, Statistics, Project Management",
+        value=persona["completed_courses"],
         height=90,
+        key=f"completed_courses_{persona_name}",
     )
     interests = st.text_area(
         "Interests and learning goals",
-        value="I am interested in sustainability, artificial intelligence, ethics, and communication skills.",
+        value=persona["interests"],
         height=120,
+        key=f"interests_{persona_name}",
     )
 
     st.header("Recommendation Settings")
@@ -69,6 +123,14 @@ mode_explanations = {
 
 st.info(mode_explanations[exploration_mode])
 
+st.subheader("What Was Important in This Prototype")
+priority_cols = st.columns(5)
+priority_cols[0].metric("Personal relevance", "TF-IDF match")
+priority_cols[1].metric("Cold start", "free-text input")
+priority_cols[2].metric("User control", "filters + mode")
+priority_cols[3].metric("Transparency", "why + scores")
+priority_cols[4].metric("Less popularity bias", "niche bonus")
+
 with st.expander("Scoring formula"):
     st.code(
         "niche_bonus = 1 - popularity\n"
@@ -76,12 +138,43 @@ with st.expander("Scoring formula"):
         language="python",
     )
 
-if submitted:
+recommendations_tab, comparison_tab, evaluation_tab = st.tabs(
+    ["Recommendations", "Safe vs Exploratory", "Evaluation"]
+)
+
+with recommendations_tab:
+    if submitted:
+        if not any([study_program.strip(), interests.strip()]):
+            st.warning("Please enter at least your study programme or interests.")
+            st.stop()
+
+        results = recommender.recommend(
+            study_program=study_program,
+            completed_courses=completed_courses,
+            interests=interests,
+            top_n=top_n,
+            language=language,
+            university=university,
+            semester=semester,
+            exploration_mode=exploration_mode,
+        )
+
+        if results.empty:
+            st.warning(
+                "No courses matched the selected filters. Try using fewer filters or another exploration mode."
+            )
+        else:
+            st.subheader("Recommended Courses")
+            render_course_cards(results)
+    else:
+        st.write("Choose a persona or enter your own profile, then click Get recommendations.")
+
+with comparison_tab:
     if not any([study_program.strip(), interests.strip()]):
         st.warning("Please enter at least your study programme or interests.")
         st.stop()
 
-    results = recommender.recommend(
+    safe_results = recommender.recommend(
         study_program=study_program,
         completed_courses=completed_courses,
         interests=interests,
@@ -89,32 +182,65 @@ if submitted:
         language=language,
         university=university,
         semester=semester,
-        exploration_mode=exploration_mode,
+        exploration_mode="Safe",
+    )
+    exploratory_results = recommender.recommend(
+        study_program=study_program,
+        completed_courses=completed_courses,
+        interests=interests,
+        top_n=top_n,
+        language=language,
+        university=university,
+        semester=semester,
+        exploration_mode="Exploratory",
     )
 
-    if results.empty:
-        st.warning(
-            "No courses matched the selected filters. Try using fewer filters or another exploration mode."
+    safe_col, exploratory_col = st.columns(2)
+    with safe_col:
+        st.subheader("Safe")
+        st.caption("Ranks by content similarity only.")
+        st.dataframe(
+            safe_results[["title", "content_score", "niche_bonus", "final_score"]],
+            width="stretch",
+            hide_index=True,
         )
-    else:
-        st.subheader("Recommended Courses")
-        for index, row in results.iterrows():
-            st.markdown(
-                f"""
-<div style="border: 1px solid #d8dee4; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-  <h3 style="margin-top: 0;">#{index + 1} {row['title']}</h3>
-  <p><strong>{row['university']}</strong> · {row['ects']:g} ECTS · {row['language']} · {row['semester']}</p>
-  <p>{row['description']}</p>
-  <p><strong>Why recommended:</strong><br>{row['explanation']}</p>
-  <p><strong>Scores:</strong>
-    Content match: {row['content_score']:.2f} ·
-    Niche bonus: {row['niche_bonus']:.2f} ·
-    Final score: {row['final_score']:.2f}
-  </p>
-</div>
-""",
-                unsafe_allow_html=True,
-            )
+    with exploratory_col:
+        st.subheader("Exploratory")
+        st.caption("Keeps relevance, but gives niche courses more visibility.")
+        st.dataframe(
+            exploratory_results[["title", "content_score", "niche_bonus", "final_score"]],
+            width="stretch",
+            hide_index=True,
+        )
+
+    if not safe_results.empty and not exploratory_results.empty:
+        safe_avg_niche = safe_results["niche_bonus"].mean()
+        exploratory_avg_niche = exploratory_results["niche_bonus"].mean()
+        st.metric(
+            "Average exploration bonus in top results",
+            f"{exploratory_avg_niche:.2f}",
+            delta=f"{exploratory_avg_niche - safe_avg_niche:+.2f} vs Safe",
+        )
+
+with evaluation_tab:
+    st.subheader("How We Evaluate the Prototype")
+    st.write(
+        "Because the catalogue and popularity values are mocked, the current evaluation is "
+        "qualitative rather than based on historical clicks, ratings, or enrolments."
+    )
+    st.markdown(
+        """
+- **Functional check:** the app accepts a student profile, applies filters, and returns a ranked top-N list.
+- **Persona check:** predefined student profiles should receive plausible courses for their interests.
+- **Transparency check:** each course shows an explanation and visible score components.
+- **Exploration check:** Safe and Exploratory mode should produce different rankings when niche courses are relevant.
+- **Ethics check:** the prototype uses no real student data and does not store user profiles.
+"""
+    )
+    st.write(
+        "A stronger future evaluation would add manually labelled relevant courses for each "
+        "persona and report Precision@5, topic coverage, and diversity across universities."
+    )
 
 st.caption(
     "The course catalogue and popularity values are mocked for demonstration. "

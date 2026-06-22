@@ -468,44 +468,6 @@
       padding-right: 2px;
     }
 
-    .course-overview {
-      background: #ffffff;
-      border: 1px solid #bfd3df;
-      border-radius: var(--radius);
-      margin-bottom: 14px;
-      overflow: hidden;
-    }
-
-    .course-overview-title {
-      align-items: center;
-      background: #f5fbff;
-      border-left: 0;
-      display: flex;
-      gap: 12px;
-      justify-content: space-between;
-      padding: 12px 14px;
-    }
-
-    .course-overview-title h2 {
-      margin: 0;
-    }
-
-    .course-overview-title p {
-      color: var(--muted);
-      margin: 2px 0 0;
-    }
-
-    .integration-pill {
-      background: #f7f7f7;
-      border: 1px solid var(--line);
-      border-radius: 2px;
-      color: #3b4045;
-      flex: 0 0 auto;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 5px 8px;
-    }
-
     .priority-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(120px, 1fr));
@@ -892,14 +854,6 @@
         display: none;
       }
 
-      .course-overview-title {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .integration-pill {
-        flex: 0 1 auto;
-      }
     }
   </style>
 </head>
@@ -948,16 +902,6 @@
           Find relevant elective and transferable-skills courses using your study record and learning goals.
         </p>
       </header>
-
-      <section class="course-overview recommendation-context">
-        <div class="course-overview-title">
-          <div>
-            <h2>Recommended electives for your study plan</h2>
-            <p>Personalised options based on your study record and learning goals.</p>
-          </div>
-          <div class="integration-pill">study record + catalogue</div>
-        </div>
-      </section>
 
       <details class="profile-panel recommendation-context">
         <summary>Adjust recommendation profile and filters</summary>
@@ -1025,8 +969,17 @@
           <option>Both</option>
         </select>
           </div>
+          <div>
+        <label for="ectsFilter">ECTS workload</label>
+        <select id="ectsFilter">
+          <option value="Any">Any</option>
+          <option value="up-to-3">Up to 3 ECTS</option>
+          <option value="4-to-5">4-5 ECTS</option>
+          <option value="6-plus">6 or more ECTS</option>
+        </select>
+          </div>
           <div class="profile-actions">
-        <button id="recommendButton">Update recommendations</button>
+            <button id="recommendButton" type="button">Update recommendations</button>
           </div>
         </div>
       </details>
@@ -1035,12 +988,12 @@
 
       <nav class="tabs recommendation-context" aria-label="Prototype views">
         <button class="tab active" data-tab="recommendations">Recommendations</button>
-        <button class="tab" data-tab="shortlist">Shortlist</button>
+        <button class="tab" data-tab="not-interested">Not interested</button>
         <button class="tab" data-tab="comparison">Compare</button>
       </nav>
 
       <section id="recommendations" class="panel"></section>
-      <section id="shortlist" class="panel" hidden></section>
+      <section id="not-interested" class="panel" hidden></section>
       <section id="comparison" class="panel" hidden></section>
       <section id="favourites" class="panel" hidden></section>
       <section id="catalogue" class="panel" hidden></section>
@@ -1085,8 +1038,9 @@
 
     let courses = [];
     let completedCourseNames = [];
+    let appliedSettings = null;
     const favouriteIds = new Set();
-    const shortlistIds = new Set();
+    const notInterestedIds = new Set();
     const compareIds = new Set();
 
     function parseCsv(text) {
@@ -1143,6 +1097,29 @@
       return new Set(tokenize(text));
     }
 
+    function readDraftSettings() {
+      return {
+        studyProgram: document.querySelector("#studyProgram").value.trim(),
+        completedCourses: [...completedCourseNames],
+        interests: document.querySelector("#interests").value.trim(),
+        language: document.querySelector("#language").value,
+        university: document.querySelector("#university").value,
+        semester: document.querySelector("#semester").value,
+        ectsFilter: document.querySelector("#ectsFilter").value,
+        topN: Number(document.querySelector("#topN").value),
+        mode: document.querySelector("#mode").value
+      };
+    }
+
+    function currentSettings() {
+      return appliedSettings || readDraftSettings();
+    }
+
+    function applyRecommendationSettings() {
+      appliedSettings = readDraftSettings();
+      updateAll();
+    }
+
     function scoreLabel(value) {
       if (value >= 0.45) return "high";
       if (value >= 0.20) return "medium";
@@ -1177,10 +1154,11 @@
     }
 
     function currentProfileText() {
+      const settings = currentSettings();
       return [
-        document.querySelector("#studyProgram").value.trim(),
-        completedCourseNames.join(" "),
-        document.querySelector("#interests").value.trim()
+        settings.studyProgram,
+        settings.completedCourses.join(" "),
+        settings.interests
       ].filter(Boolean).join(" ");
     }
 
@@ -1217,14 +1195,16 @@
     }
 
     function recommend(mode, options = {}) {
-      const excludeShortlisted = options.excludeShortlisted ?? true;
-      const studyProgram = document.querySelector("#studyProgram").value.trim();
-      const completedCourses = completedCourseNames.join(", ");
-      const interests = document.querySelector("#interests").value.trim();
-      const language = document.querySelector("#language").value;
-      const university = document.querySelector("#university").value;
-      const semester = document.querySelector("#semester").value;
-      const topN = Number(document.querySelector("#topN").value);
+      const includeNotInterested = options.includeNotInterested ?? false;
+      const settings = currentSettings();
+      const studyProgram = settings.studyProgram;
+      const completedCourses = settings.completedCourses.join(", ");
+      const interests = settings.interests;
+      const language = settings.language;
+      const university = settings.university;
+      const semester = settings.semester;
+      const ectsFilter = settings.ectsFilter;
+      const topN = settings.topN;
       const profileText = [studyProgram, completedCourses, interests].filter(Boolean).join(" ");
       const profileTokens = uniqueTokens(profileText);
       const completedText = completedCourses.toLowerCase();
@@ -1238,8 +1218,14 @@
         .filter((course) => language === "Any" || course.language === language)
         .filter((course) => university === "Any" || course.university === university)
         .filter((course) => semester === "Any" || course.semester === semester || course.semester === "Both")
+        .filter((course) => {
+          if (ectsFilter === "up-to-3") return course.ects <= 3;
+          if (ectsFilter === "4-to-5") return course.ects >= 4 && course.ects <= 5;
+          if (ectsFilter === "6-plus") return course.ects >= 6;
+          return true;
+        })
         .filter((course) => !completedText || !completedText.includes(course.title.toLowerCase()))
-        .filter((course) => !excludeShortlisted || !shortlistIds.has(course.course_id))
+        .filter((course) => includeNotInterested || !notInterestedIds.has(course.course_id))
         .map((course) => {
           const content = contentScore(profileTokens, course);
           const niche = 1 - course.popularity;
@@ -1262,7 +1248,7 @@
     function renderCards(results) {
       const container = document.querySelector("#recommendations");
       if (!results.length) {
-        container.innerHTML = "<p>No further courses matched the selected filters. Remove a course from the shortlist or use fewer filters.</p>";
+        container.innerHTML = "<p>No further courses matched the selected filters. Show a course again from Not interested or use fewer filters.</p>";
         return;
       }
 
@@ -1289,8 +1275,8 @@
                 <button class="action-button ${favouriteIds.has(course.course_id) ? "active" : ""}" data-action="favourite" data-course-id="${course.course_id}">
                   ${favouriteIds.has(course.course_id) ? "In favourites" : "Add to favourites"}
                 </button>
-                <button class="action-button ${shortlistIds.has(course.course_id) ? "active" : ""}" data-action="shortlist" data-course-id="${course.course_id}">
-                  ${shortlistIds.has(course.course_id) ? "Shortlisted" : "Shortlist"}
+                <button class="action-button ${notInterestedIds.has(course.course_id) ? "active" : ""}" data-action="not-interested" data-course-id="${course.course_id}">
+                  ${notInterestedIds.has(course.course_id) ? "Not interested" : "Not interested"}
                 </button>
                 <button class="action-button ${compareIds.has(course.course_id) ? "active" : ""}" data-action="compare" data-course-id="${course.course_id}">
                   ${compareIds.has(course.course_id) ? "Selected" : "Compare"}
@@ -1326,31 +1312,30 @@
       `;
     }
 
-    function renderShortlist() {
-      const selected = [...shortlistIds].map(courseById).filter(Boolean);
-      const totalEcts = selected.reduce((sum, course) => sum + course.ects, 0);
+    function renderNotInterested() {
+      const selected = [...notInterestedIds].map(courseById).filter(Boolean);
       if (!selected.length) {
-        document.querySelector("#shortlist").innerHTML = `
-          <h2>Shortlist</h2>
-          <div class="empty-state">No courses shortlisted yet. Use Shortlist on a recommendation to build your planning list.</div>
+        document.querySelector("#not-interested").innerHTML = `
+          <h2>Not interested</h2>
+          <div class="empty-state">No courses have been excluded. Use Not interested to hide a course from future recommendations.</div>
         `;
         return;
       }
 
-      document.querySelector("#shortlist").innerHTML = `
-        <h2>Shortlist</h2>
+      document.querySelector("#not-interested").innerHTML = `
+        <h2>Not interested</h2>
         <div class="metrics-grid">
-          <div class="metric-card"><span>Selected courses</span><strong>${selected.length}</strong></div>
-          <div class="metric-card"><span>Total ECTS</span><strong>${totalEcts}</strong></div>
+          <div class="metric-card"><span>Courses excluded</span><strong>${selected.length}</strong></div>
           <div class="metric-card"><span>Universities</span><strong>${new Set(selected.map((course) => course.university)).size}</strong></div>
           <div class="metric-card"><span>Languages</span><strong>${new Set(selected.map((course) => course.language)).size}</strong></div>
+          <div class="metric-card"><span>Ranking status</span><strong>Hidden</strong></div>
         </div>
-        ${renderShortlistCourses(selected)}
+        ${renderNotInterestedCourses(selected)}
       `;
-      attachCourseActions(document.querySelector("#shortlist"));
+      attachCourseActions(document.querySelector("#not-interested"));
     }
 
-    function renderShortlistCourses(results) {
+    function renderNotInterestedCourses(results) {
       return results.map((course, index) => `
         <article class="course">
           <div class="course-head">
@@ -1358,7 +1343,7 @@
             <div>
               <div class="course-title-row">
                 <h3>${course.title}</h3>
-                <span class="badge open">shortlisted</span>
+                <span class="badge open">not interested</span>
               </div>
               <p class="meta"><strong>${course.university}</strong> &middot; ${course.ects} ECTS &middot; ${course.language} &middot; ${course.semester}</p>
               <div class="tag-row">${formatTags(course)}</div>
@@ -1367,7 +1352,7 @@
           <div class="course-body">
             <p class="course-description">${course.description}</p>
             <div class="inline-actions">
-              <button class="action-button active" data-action="shortlist" data-course-id="${course.course_id}">Remove from shortlist</button>
+              <button class="action-button active" data-action="not-interested" data-course-id="${course.course_id}">Show again</button>
               <button class="action-button ${favouriteIds.has(course.course_id) ? "active" : ""}" data-action="favourite" data-course-id="${course.course_id}">
                 ${favouriteIds.has(course.course_id) ? "In favourites" : "Add to favourites"}
               </button>
@@ -1403,8 +1388,8 @@
                   <td>${course.semester}</td>
                   <td class="list-actions">
                     <button class="action-button active" data-action="favourite" data-course-id="${course.course_id}">Remove</button>
-                    <button class="action-button ${shortlistIds.has(course.course_id) ? "active" : ""}" data-action="shortlist" data-course-id="${course.course_id}">
-                      ${shortlistIds.has(course.course_id) ? "Shortlisted" : "Shortlist"}
+                    <button class="action-button ${notInterestedIds.has(course.course_id) ? "active" : ""}" data-action="not-interested" data-course-id="${course.course_id}">
+                      ${notInterestedIds.has(course.course_id) ? "Show again" : "Not interested"}
                     </button>
                   </td>
                 </tr>
@@ -1435,8 +1420,8 @@
                     <button class="action-button ${favouriteIds.has(course.course_id) ? "active" : ""}" data-action="favourite" data-course-id="${course.course_id}">
                       ${favouriteIds.has(course.course_id) ? "Favourite" : "Add favourite"}
                     </button>
-                    <button class="action-button ${shortlistIds.has(course.course_id) ? "active" : ""}" data-action="shortlist" data-course-id="${course.course_id}">
-                      ${shortlistIds.has(course.course_id) ? "Shortlisted" : "Shortlist"}
+                    <button class="action-button ${notInterestedIds.has(course.course_id) ? "active" : ""}" data-action="not-interested" data-course-id="${course.course_id}">
+                      ${notInterestedIds.has(course.course_id) ? "Show again" : "Not interested"}
                     </button>
                   </td>
                 </tr>
@@ -1453,10 +1438,10 @@
     }
 
     function renderEvaluation() {
-      const mode = document.querySelector("#mode").value;
-      const current = recommend(mode, { excludeShortlisted: false });
-      const safe = recommend("Safe", { excludeShortlisted: false });
-      const exploratory = recommend("Exploratory", { excludeShortlisted: false });
+      const mode = currentSettings().mode;
+      const current = recommend(mode, { includeNotInterested: true });
+      const safe = recommend("Safe", { includeNotInterested: true });
+      const exploratory = recommend("Exploratory", { includeNotInterested: true });
       const overlap = safe.filter((course) => exploratory.some((other) => other.course_id === course.course_id)).length;
       const universities = new Set(current.map((course) => course.university)).size;
       const tags = new Set(current.flatMap((course) => course.tags.split(",").map((tag) => tag.trim()).filter(Boolean))).size;
@@ -1465,13 +1450,13 @@
       const exploratoryAvgPopularity = average(exploratory.map((course) => course.popularity));
 
       document.querySelector("#evaluation").innerHTML = `
-        <h2>Prototype Notes</h2>
+        <h2>Evaluation overview</h2>
         <p class="muted">This tab contains information for presentation and evaluation. It would normally be hidden from students.</p>
         <h3>Design priorities</h3>
         <section class="priority-grid" aria-label="Prototype priorities">
           <div class="priority"><strong>Personal relevance</strong><span>text match</span></div>
           <div class="priority"><strong>Transparent reasons</strong><span>matched tags</span></div>
-          <div class="priority"><strong>Planning support</strong><span>favourites + shortlist + compare</span></div>
+          <div class="priority"><strong>User control</strong><span>favourites + exclusions + compare</span></div>
           <div class="priority"><strong>Less popularity bias</strong><span>exploration mode</span></div>
         </section>
         <h3>Current mode</h3>
@@ -1508,7 +1493,7 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
       if (!results.length) {
         return "<p>No matching courses.</p>";
       }
-      const mode = document.querySelector("#mode").value;
+      const mode = currentSettings().mode;
       const nicheWeight = modeWeights[mode] ?? 0.15;
       const profileTokens = currentProfileTokens();
       const rows = results.map((course) => {
@@ -1523,7 +1508,7 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
           niche_bonus: niche,
           final_score: (1 - nicheWeight) * content + nicheWeight * niche
         };
-      });
+      }).sort((a, b) => b.final_score - a.final_score);
       return `
         <table>
           <thead>
@@ -1554,8 +1539,8 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
           const courseId = button.dataset.courseId;
           const target = button.dataset.action === "favourite"
             ? favouriteIds
-            : button.dataset.action === "shortlist"
-              ? shortlistIds
+            : button.dataset.action === "not-interested"
+              ? notInterestedIds
               : compareIds;
           if (target.has(courseId)) {
             target.delete(courseId);
@@ -1568,19 +1553,20 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
     }
 
     function renderSummary() {
-      const program = document.querySelector("#studyProgram").value.trim() || "No programme";
-      const interests = tokenize(document.querySelector("#interests").value).slice(0, 3);
-      const completed = completedCourseNames.length;
+      const settings = currentSettings();
+      const program = settings.studyProgram || "No programme";
+      const interests = tokenize(settings.interests).slice(0, 3);
+      const completed = settings.completedCourses.length;
       document.querySelector("#studentSummary").innerHTML = `
         <div class="summary-card"><span>Study programme</span><strong>${program}</strong></div>
         <div class="summary-card"><span>Completed courses</span><strong>${completed}</strong></div>
-        <div class="summary-card"><span>Shortlisted ECTS</span><strong>${[...shortlistIds].map(courseById).filter(Boolean).reduce((sum, course) => sum + course.ects, 0)}</strong></div>
+        <div class="summary-card"><span>Courses excluded</span><strong>${notInterestedIds.size}</strong></div>
         <div class="summary-card"><span>Interest signals</span><strong>${interests.length ? interests.join(", ") : "not set"}</strong></div>
       `;
     }
 
     function updateModeInfo() {
-      const mode = document.querySelector("#mode").value;
+      const mode = currentSettings().mode;
       const modeInfo = document.querySelector("#modeInfo");
       if (modeInfo) {
         modeInfo.textContent = modeExplanations[mode];
@@ -1589,10 +1575,10 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
 
     function updateAll() {
       updateModeInfo();
-      const results = recommend(document.querySelector("#mode").value);
+      const results = recommend(currentSettings().mode);
       renderSummary();
       renderCards(results);
-      renderShortlist();
+      renderNotInterested();
       renderFavourites();
       renderCatalogue();
       renderComparison();
@@ -1605,7 +1591,6 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
       completedCourseNames = persona.completedCourses.split(",").map((course) => course.trim()).filter(Boolean);
       renderCompletedCourseChips();
       document.querySelector("#interests").value = persona.interests;
-      updateAll();
     }
 
     function renderCompletedCourseChips() {
@@ -1626,7 +1611,6 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
         button.addEventListener("click", () => {
           completedCourseNames.splice(Number(button.dataset.completedIndex), 1);
           renderCompletedCourseChips();
-          updateAll();
         });
       });
     }
@@ -1643,11 +1627,10 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
       }
       input.value = "";
       renderCompletedCourseChips();
-      updateAll();
     }
 
     function setupTabs() {
-      const viewIds = ["recommendations", "shortlist", "comparison", "favourites", "catalogue"];
+      const viewIds = ["recommendations", "not-interested", "comparison", "favourites", "catalogue"];
       const pageCopy = {
         recommendations: {
           breadcrumb: "<span>Teaching</span> / <span>Study planning</span> / Elective recommendations",
@@ -1663,11 +1646,19 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
           breadcrumb: "<span>Teaching</span> / <span>Course offer</span> / Courses",
           title: "Courses",
           description: "All mock courses currently available to the recommendation prototype."
+        },
+        prototype: {
+          breadcrumb: "<span>Teaching</span> / Prototype notes",
+          title: "Prototype Notes",
+          description: "Evaluation details, ranking diagnostics, and design rationale for the prototype presentation."
         }
       };
+      let activeView = "recommendations";
+      let viewBeforeNotes = "recommendations";
 
       function showView(viewId) {
-        const recommendationView = ["recommendations", "shortlist", "comparison"].includes(viewId);
+        activeView = viewId;
+        const recommendationView = ["recommendations", "not-interested", "comparison"].includes(viewId);
         viewIds.forEach((id) => {
           document.querySelector(`#${id}`).hidden = id !== viewId;
         });
@@ -1713,18 +1704,28 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
       document.querySelector("#prototypeToggle").addEventListener("click", () => {
         const evaluation = document.querySelector("#evaluation");
         const willShow = evaluation.hidden;
+        if (!willShow) {
+          showView(viewBeforeNotes);
+          return;
+        }
+
+        viewBeforeNotes = activeView;
         viewIds.forEach((id) => {
           document.querySelector(`#${id}`).hidden = true;
+        });
+        document.querySelectorAll(".recommendation-context").forEach((element) => {
+          element.hidden = true;
         });
         document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
         document.querySelector("#favouritesNav").classList.remove("active");
         document.querySelector("#coursesNav").classList.remove("active");
         document.querySelector("#recommendationsNav").classList.remove("active");
-        evaluation.hidden = !willShow;
-        document.querySelector("#prototypeToggle").classList.toggle("active", willShow);
-        if (!willShow) {
-          showView("recommendations");
-        }
+        evaluation.hidden = false;
+        document.querySelector("#prototypeToggle").classList.add("active");
+        document.querySelector("#pageBreadcrumb").innerHTML = pageCopy.prototype.breadcrumb;
+        document.querySelector("#pageTitle").textContent = pageCopy.prototype.title;
+        document.querySelector("#pageDescription").textContent = pageCopy.prototype.description;
+        document.querySelector(".content").scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
 
@@ -1761,13 +1762,11 @@ final_score = (1 - niche_weight) * content_score + niche_weight * niche_bonus</c
           addCompletedCourseFromInput();
         }
       });
-      document.querySelector("#recommendButton").addEventListener("click", updateAll);
-      ["topN", "language", "university", "semester", "mode"].forEach((id) => {
-        document.querySelector(`#${id}`).addEventListener("change", updateAll);
-      });
+      document.querySelector("#recommendButton").addEventListener("click", applyRecommendationSettings);
 
       setupTabs();
       setPersona("Business Informatics");
+      applyRecommendationSettings();
     }
 
     init().catch((error) => {

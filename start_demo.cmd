@@ -3,31 +3,22 @@ setlocal
 
 cd /d "%~dp0"
 
-set "VENV_DIR=.venv-win"
-set "PYTHON_EXE=%VENV_DIR%\Scripts\python.exe"
 set "PYTHON_LAUNCHER=py"
 
 where py >nul 2>&1
-if errorlevel 1 set "PYTHON_LAUNCHER=python"
-
-if not exist "%PYTHON_EXE%" (
-  echo Creating virtual environment...
-  %PYTHON_LAUNCHER% -m venv "%VENV_DIR%"
-  if errorlevel 1 goto :error
-)
-
-"%PYTHON_EXE%" -c "import streamlit, pandas, sklearn, numpy" >nul 2>&1
 if errorlevel 1 (
-  echo Installing dependencies...
-  "%PYTHON_EXE%" -m pip install -r requirements.txt
+  where python >nul 2>&1
   if errorlevel 1 goto :error
+  set "PYTHON_LAUNCHER=python"
 )
 
-echo Starting demo at http://localhost:8501
-start "" cmd /c "timeout /t 3 /nobreak >nul & start http://localhost:8501"
-"%PYTHON_EXE%" -m streamlit run app.py --server.headless true --server.port 8501 --browser.gatherUsageStats false
+echo Starting prototype at http://localhost:8600/
+echo Press Ctrl+C to stop the server.
+start "" cmd /c "timeout /t 2 /nobreak >nul & start http://localhost:8600/"
+%PYTHON_LAUNCHER% -m http.server 8600 --bind 127.0.0.1
 exit /b %errorlevel%
 
 :error
-echo Launch failed.
+echo Launch failed: Python was not found. Install Python and try again.
+pause
 exit /b 1

@@ -2,17 +2,17 @@
 
 ## 1. What the Current Prototype Does
 
-The prototype recommends elective courses from a mock catalogue of 36 courses. It is designed as an embedded study-management feature rather than a standalone recommender.
+The prototype recommends elective courses from a mock catalogue of 44 courses. It is designed as an embedded study-management feature rather than a standalone recommender.
 
 The student can:
 
 - inspect all mock courses under **Course offer > Courses**;
 - adjust a demo study programme, completed courses, interests, and learning goals;
-- apply language, university, semester, and result-count filters;
+- apply language, university, semester, ECTS workload, and result-count filters;
 - choose Safe, Balanced, or Exploratory recommendation mode;
 - read a reason for every recommendation;
 - save courses as favourites;
-- build a separate shortlist, where shortlisted courses are removed from the recommendation list and replaced by the next-ranked eligible course;
+- mark courses as not interesting, which removes them from the recommendation list and replaces them with the next-ranked eligible course;
 - compare selected courses;
 - open **Prototype notes** to inspect the scoring formula and evaluation snapshot.
 
@@ -36,9 +36,9 @@ This component is responsible for **personal relevance**. For example, a profile
 
 Rules are applied before ranking:
 
-- enforce the selected language, university, and semester filters;
+- enforce the selected language, university, semester, and ECTS workload filters;
 - remove a course if its title appears in the completed-course record;
-- remove shortlisted courses from recommendations so the next eligible result is shown;
+- remove courses marked as not interesting so the next eligible result is shown;
 - limit the result to the selected top-N value.
 
 These rules are responsible for **eligibility and workflow correctness**, not semantic relevance. A ranking model should not be expected to learn hard requirements such as language or semester availability.
@@ -75,7 +75,7 @@ This combination was selected for specific reasons:
 | Handle new courses | Content-based scoring | A new course can be recommended as soon as its title, description, and tags exist. |
 | Respect language, semester, and university choices | Rules | These are explicit constraints. A learned score could otherwise rank an unavailable or unsuitable course highly. |
 | Avoid recommending completed courses | Rule | Completion is a hard exclusion, not a preference signal. |
-| Keep planning interaction coherent | Rule | Shortlisted courses leave the recommendation pool and are replaced automatically. |
+| Respect negative feedback | Rule | Courses marked as not interesting leave the recommendation pool and are replaced automatically. |
 | Reduce popularity bias | Niche re-ranking | A controlled weight exposes less popular courses without discarding relevance. |
 | Explain results | Token matches and explicit score components | The reason can be traced to matched course metadata and a small, inspectable formula. |
 
@@ -132,7 +132,7 @@ Test deterministic behaviour first:
 
 - language, university, and semester filters never return ineligible courses;
 - completed courses are excluded;
-- shortlisting removes a course from recommendations and loads the next-ranked eligible course;
+- marking a course as not interesting removes it from recommendations and loads the next-ranked eligible course;
 - favourites do not change ranking;
 - Safe mode equals content-only ranking;
 - repeated runs with the same profile return the same order;
@@ -214,7 +214,7 @@ It should be measured over many representative profiles, not from one student's 
 
 **Partially, but not formally.** The Prototype notes currently calculate university diversity and topic-tag coverage within the current top-N list. They also compare average popularity between modes. These are useful diagnostics, but they are not catalogue coverage.
 
-The **Courses** page exposing all 36 mock courses improves transparency, but it also does not prove recommendation coverage.
+The **Courses** page exposing all 44 mock courses improves transparency, but it also does not prove recommendation coverage.
 
 ### Proposed coverage experiment
 
@@ -257,7 +257,7 @@ Production integration should use only necessary study-record fields, explain th
 - Popularity values are mocked and are not based on a defined observation window.
 - The model has not been evaluated against expert relevance labels.
 - Formal catalogue coverage, exposure fairness, and demographic fairness have not yet been measured.
-- Favourites and shortlist interactions are kept only in browser memory and are not persisted.
+- Favourites and not-interested interactions are kept only in browser memory and are not persisted.
 
 These limitations should be presented directly. The prototype demonstrates interaction design and a transparent baseline, not a production-ready recommendation model.
 
@@ -268,7 +268,7 @@ These limitations should be presented directly. The prototype demonstrates inter
 **Title: Why content scoring plus rules?**
 
 - Content scoring ranks courses by overlap with the student's programme, completed courses, and stated goals.
-- Rules enforce hard planning constraints: language, semester, university, completion status, and shortlist state.
+- Rules enforce hard planning constraints: language, semester, university, completion status, and not-interested state.
 - Popularity-aware re-ranking gives less popular but still relevant courses controlled visibility.
 - This design works without historical interaction data and handles new students and new courses.
 - Safe mode is the content-only baseline; Balanced and Exploratory add explicit discovery trade-offs.

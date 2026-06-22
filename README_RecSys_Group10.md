@@ -75,15 +75,31 @@ From PowerShell or Command Prompt:
 .\start_demo.cmd
 ```
 
-This creates a local Windows virtual environment on first run, installs dependencies if needed, and starts the Streamlit app.
+This switches to the project directory automatically, starts a local server, and opens the current static prototype in the browser. No virtual environment or package installation is required.
 
-### Option 2: Run with bash script
+### Option 2: Run with the Bash/WSL launcher
+
+```bash
+./start_demo.sh
+```
+
+This launcher also switches to the project directory automatically. If the browser does not open automatically, open `http://localhost:8600/prototype_static.html`.
+
+### Option 3: Run the static prototype manually
+
+```bash
+python3 -m http.server 8600
+```
+
+Then open `http://localhost:8600/prototype_static.html`.
+
+### Option 4: Run the Streamlit version with bash
 
 ```bash
 bash run_prototype.sh
 ```
 
-### Option 3: Run manually
+### Option 5: Run the Streamlit version manually
 
 Install dependencies:
 

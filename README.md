@@ -20,14 +20,18 @@ The application is built with Streamlit and a small content-based recommender. I
 ├── app.py                         # Streamlit user interface
 ├── recommender.py                 # Recommendation logic
 ├── data/courses.csv               # Mock course catalogue
+├── DATA_SPEC.md                   # Data documentation
 ├── tests/                         # Unit tests for recommender behavior
 ├── prototype_static.html          # Static demo export
 ├── index.html                     # Redirect to static demo
 ├── run_prototype.sh               # Streamlit launcher
 ├── start_demo.sh / start_demo.cmd # Static demo launchers
-├── pyproject.toml                 # Python project metadata and pytest config
-└── README_RecSys_Group10.md       # Extended project write-up
+├── requirements.txt               # Runtime dependencies
+├── requirements-dev.txt           # Test dependencies
+└── pyproject.toml                 # Python project metadata and pytest config
 ```
+
+The `models/` and `results/` directories are included as placeholders for course-template submissions that expect these folders. This prototype currently does not train or persist a model.
 
 ## Quick Start
 

@@ -1,8 +1,14 @@
 .venv/
+.venv-win/
 __pycache__/
 *.py[cod]
 .streamlit/
 .DS_Store
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

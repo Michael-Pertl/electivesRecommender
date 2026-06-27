@@ -25,7 +25,7 @@ REQUIRED_COLUMNS = {
 class CourseRecommender:
     """Small content-based course recommender for the Streamlit prototype."""
 
-    def __init__(self, courses_path: str):
+    def __init__(self, courses_path: str | Path):
         self.courses_path = Path(courses_path)
         if not self.courses_path.exists():
             raise FileNotFoundError(f"Course dataset not found: {self.courses_path}")
@@ -35,6 +35,8 @@ class CourseRecommender:
         if missing_columns:
             missing = ", ".join(sorted(missing_columns))
             raise ValueError(f"Course dataset is missing required columns: {missing}")
+        if self.courses.empty:
+            raise ValueError("Course dataset must contain at least one course")
 
         self.courses = self.courses.copy()
         for column in ["title", "university", "language", "semester", "description", "tags"]:
@@ -78,6 +80,8 @@ class CourseRecommender:
         if not profile_text:
             return pd.DataFrame()
 
+        top_n = max(1, int(top_n))
+
         user_vector = self.vectorizer.transform([profile_text])
         content_scores = np.asarray(cosine_similarity(user_vector, self.course_matrix)).flatten()
 
@@ -120,7 +124,7 @@ class CourseRecommender:
         ]
         return (
             results.sort_values("final_score", ascending=False)
-            .head(int(top_n))
+            .head(top_n)
             .loc[:, display_columns]
             .reset_index(drop=True)
         )
@@ -201,4 +205,9 @@ class CourseRecommender:
 
 
 def available_values(values: Iterable[str]) -> list[str]:
-    return ["Any"] + sorted({str(value) for value in values if str(value).strip()})
+    clean_values = {
+        str(value).strip()
+        for value in values
+        if value is not None and str(value).strip() and str(value).strip().lower() != "nan"
+    }
+    return ["Any"] + sorted(clean_values)

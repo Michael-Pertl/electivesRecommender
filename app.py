@@ -5,7 +5,8 @@ import streamlit as st
 from recommender import CourseRecommender, available_values
 
 
-DATA_PATH = Path("data/courses.csv")
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data" / "courses.csv"
 
 PERSONAS = {
     "Business Informatics": {
@@ -56,7 +57,7 @@ def render_course_cards(results):
 
 @st.cache_resource
 def load_recommender() -> CourseRecommender:
-    return CourseRecommender(str(DATA_PATH))
+    return CourseRecommender(DATA_PATH)
 
 
 st.set_page_config(page_title="Personalized Elective Course Recommender", layout="wide")
